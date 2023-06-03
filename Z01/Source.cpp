@@ -1,6 +1,5 @@
 ﻿#include <iostream>
 #include <vector>
-#include <cstdlib>
 #include <chrono>
 #include <thread>
 
@@ -9,60 +8,76 @@ using namespace std;
 const int REDAKA = 20;
 const int STUPACA = 40;
 
-void iscrtajPut(int startRedak, int startStupac, int ciljRedak, int ciljStupac) {
-    if (startRedak < 1 || startRedak > REDAKA || startStupac < 1 || startStupac > STUPACA ||
-        ciljRedak < 1 || ciljRedak > REDAKA || ciljStupac < 1 || ciljStupac > STUPACA) {
-        cout << "Neispravni ulazni parametri!\n";
-        return;
-    }
-    vector<vector<char>> polje(REDAKA, vector<char>(STUPACA, '-'));
+struct Point {
+    int redak;
+    int stupac;
 
-    polje[startRedak - 1][startStupac - 1] = 'A';
-    polje[ciljRedak - 1][ciljStupac - 1] = 'B';
-    int pomakRedak = (ciljRedak > startRedak) ? 1 : -1;
-    int pomakStupac = (ciljStupac > startStupac) ? 1 : -1;
-    int trenutniRedak = startRedak;
-    int trenutniStupac = startStupac;
+    Point(int r, int c) : redak(r), stupac(c) {}
+};
 
-    for (int i = 0; i < REDAKA; i++) {
-        for (int j = 0; j < STUPACA; j++) {
-            cout << polje[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
+void plotPath(const vector<Point>& path) {
+    vector<vector<char>> grid(REDAKA, vector<char>(STUPACA, '-'));
+    
+    for (const Point& point : path) {
+        grid[point.redak - 1][point.stupac - 1] = 'X';
 
-    while (trenutniRedak != ciljRedak || trenutniStupac != ciljStupac) {
-      
-        this_thread::sleep_for(chrono::milliseconds(100));
         system("cls");
-        polje[trenutniRedak - 1][trenutniStupac - 1] = 'X';
+
         for (int i = 0; i < REDAKA; i++) {
             for (int j = 0; j < STUPACA; j++) {
-                cout << polje[i][j] << " ";
+                cout << grid[i][j] << " ";
             }
             cout << endl;
         }
-        cout << endl;
-        polje[trenutniRedak - 1][trenutniStupac - 1] = '-';
-
-        trenutniRedak += pomakRedak;
-        trenutniStupac += pomakStupac;
+        this_thread::sleep_for(chrono::milliseconds(100));
     }
 }
 
-int main() {
-    int startRedak, startStupac, ciljRedak, ciljStupac;
-    cout << "A redak: ";
-    cin >> startRedak;
-    cout << "A stupac: ";
-    cin >> startStupac;
-    cout << "B redak: ";
-    cin >> ciljRedak;
-    cout << "B stupac: ";
-    cin >> ciljStupac;
+vector<Point> findPath(const Point& start, const Point& end) {
+    vector<Point> path;
 
-    iscrtajPut(startRedak, startStupac, ciljRedak, ciljStupac);
+    path.push_back(start);
+
+    if (start.stupac < end.stupac) {
+        for (int c = start.stupac + 1; c <= end.stupac; c++) {
+            path.push_back(Point(start.redak, c));
+        }
+    } else if (start.stupac > end.stupac) {
+        for (int c = start.stupac - 1; c >= end.stupac; c--) {
+            path.push_back(Point(start.redak, c));
+        }
+    }
+
+    if (start.redak < end.redak) {
+        for (int r = start.redak + 1; r <= end.redak; r++) {
+            path.push_back(Point(r, end.stupac));
+        }
+    } else if (start.redak > end.redak) {
+        for (int r = start.redak - 1; r >= end.redak; r--) {
+            path.push_back(Point(r, end.stupac));
+        }
+    }
+
+    return path;
+}
+
+int main() {
+    int startR, startS, endR, endS;
+
+    cout << "Redak A(1-20):";
+    cin >> startR;
+    cout << "Stupac A(1-40): ";
+    cin >> startS;
+
+    cout << "Redak B(1-20): ";
+    cin >> endR;
+    cout << "Stupac B(1-40): ";
+    cin >> endS;
+
+    Point start(startR, startS);
+    Point end(endR, endS);
+    vector<Point> path = findPath(start, end);
+    plotPath(path);
 
     return 0;
 }
